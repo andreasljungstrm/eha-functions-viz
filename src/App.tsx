@@ -131,10 +131,7 @@ const panelDefinitions: ChartPanelDefinition[] = [
     title: 'Cumulative hazard function',
     yLabel: 'Cumulative hazard',
     series: [{ key: 'cumulativeHazard', label: 'Cumulative hazard H(t)', color: '#dc2626' }],
-    yMax: (points) => {
-      const maxVal = Math.max(...points.map((p) => p.cumulativeHazard), 0.1)
-      return Math.max(maxVal * 1.1, 1.5)
-    },
+    yMax: (points) => Math.min(Math.max(...points.map((p) => p.cumulativeHazard), 0.5) * 1.1, 8),
     referenceLines: [{ value: 1, label: 'H=1 (S≈37%)' }],
   },
   {
@@ -154,10 +151,6 @@ interface Exercise {
 }
 
 const exercises: Exercise[] = [
-    {
-    id: 'ex-set-hazard',
-    question: 'Set a hazard rate λ that you think gives a realistic survival curve for the study you defined.',
-  },
   {
     id: 'ex-30pct',
     question: 'At what time have 30% of the population experienced the target event?',
@@ -254,7 +247,7 @@ function App() {
             <LabeledField label="Target population">
               <input
                 value={study.populationLabel}
-                placeholder="e.g. 18-year-olds in a small town"
+                placeholder="e.g., Individuals without drivers license"
                 onChange={(e) => handleTextChange('populationLabel', e.target.value)}
               />
             </LabeledField>
@@ -288,7 +281,7 @@ function App() {
             <LabeledField label="Target event">
               <input
                 value={study.targetEvent}
-                placeholder="e.g. Taking a driver's license"
+                placeholder="e.g., Getting a driver's license"
                 onChange={(e) => handleTextChange('targetEvent', e.target.value)}
               />
             </LabeledField>
@@ -296,7 +289,7 @@ function App() {
             <LabeledField label="Time origin">
               <input
                 value={study.timeOrigin}
-                placeholder="e.g. When individuals turn 18"
+                placeholder="e.g., Eligibility for getting a driver's license, age 18"
                 onChange={(e) => handleTextChange('timeOrigin', e.target.value)}
               />
             </LabeledField>
@@ -316,7 +309,7 @@ function App() {
               <textarea
                 rows={2}
                 value={study.exitRule}
-                placeholder="e.g. Taking a driver's license or turning 21, whichever comes first"
+                placeholder="e.g., Getting a driver's license, death, or turning 30"
                 onChange={(e) => handleTextChange('exitRule', e.target.value)}
               />
             </LabeledField>
@@ -335,7 +328,7 @@ function App() {
               ready={studyReady}
               draggableY={panel.id === 'hazard' ? study.hazardRate : undefined}
               onYDrag={panel.id === 'hazard' ? (v) => handleNumericChange('hazardRate', v) : undefined}
-            />
+              />
           ))}
         </section>
 
@@ -376,6 +369,7 @@ function FunctionPanel({
   ready,
   draggableY,
   onYDrag,
+  yMaxOverride,
 }: {
   panel: ChartPanelDefinition
   points: EventHistoryPoint[]
@@ -384,8 +378,9 @@ function FunctionPanel({
   ready: boolean
   draggableY?: number
   onYDrag?: (value: number) => void
+  yMaxOverride?: number
 }) {
-  const yMax = panel.yMax(points)
+  const yMax = yMaxOverride ?? panel.yMax(points)
   const chartSeries = panel.series.map((s) => ({
     ...s,
     values: points.map((p) => p[s.key]),
