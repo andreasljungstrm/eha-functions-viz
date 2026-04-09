@@ -1,0 +1,46 @@
+name: Build and deploy to ida.ljungstrm.se/eha
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout eha-functions-viz
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Checkout ida.ljungstrm.se
+        uses: actions/checkout@v4
+        with:
+          repository: andreasljungstrm/ida.ljungstrm.se
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          path: target-site
+
+      - name: Update eha/ directory
+        run: |
+          rm -rf target-site/eha
+          cp -r dist target-site/eha
+
+      - name: Commit and push
+        run: |
+          cd target-site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add eha/
+          git commit -m "Update eha/ from eha-functions-viz@${GITHUB_SHA::7}" || echo "No changes to commit"
+          git push
