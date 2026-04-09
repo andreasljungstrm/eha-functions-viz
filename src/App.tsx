@@ -58,13 +58,6 @@ function parseFirstNumber(text: string): number | null {
   return match ? parseFloat(match[0]) : null
 }
 
-function deriveDuration(timeOrigin: string, exitRule: string): number | null {
-  const origin = parseFirstNumber(timeOrigin)
-  const exit = parseFirstNumber(exitRule)
-  if (origin !== null && exit !== null && exit > origin) return Math.round(exit - origin)
-  return null
-}
-
 function formatXTick(value: number) {
   return Number.isInteger(value) ? String(value) : value.toFixed(1)
 }
