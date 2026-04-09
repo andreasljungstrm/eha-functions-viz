@@ -21,3 +21,5 @@ npm run lint
 ## Model assumption
 
 The current implementation uses a constant hazard rate, which matches the requirement that the hazard function be constant. The same hazard-rate and follow-up controls drive all four panels so students can see how the functions remain mathematically linked.
+
+:)
