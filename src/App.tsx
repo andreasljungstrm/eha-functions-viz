@@ -181,7 +181,6 @@ function App() {
   const xStart = (study.timeScale === 'Age' || study.timeScale === 'Calendar year')
     ? (parseFirstNumber(study.timeOrigin) ?? 0)
     : 0
-  const maxTimeSliderMax = study.maxTime * 3
 
   const studyReady =
     study.timeOrigin.trim() !== '' &&
