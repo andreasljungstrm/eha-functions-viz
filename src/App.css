@@ -181,17 +181,27 @@ textarea {
   display: inline-block;
 }
 
-/* ─── Shared sliders card ─────────────────────────────────────────────────── */
+/* ─── Shared sliders card ────────────────────────────────────────────── */
 
 .sliders-card {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 24px;
+  gap: 8px 24px;
   padding: 12px 18px;
   border: 1px solid rgba(148, 163, 184, 0.3);
   border-radius: 14px;
   background: #fff;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.hazard-controls__plot {
+  min-width: 0;
+}
+
+.hazard-controls__sliders {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 24px;
 }
 
 .slider-control {

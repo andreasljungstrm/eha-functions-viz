@@ -106,8 +106,14 @@ const defaultStudy: StudyScenario = {
   maxTime: 3,
 }
 
-// Clockwise from top-left: S/F (TL) -> f (TR) -> h (BR) -> H (BL)
-// CSS grid row-fill order: TL, TR, BL, BR => S/F, density, cumulative-hazard, hazard
+const hazardPanel: ChartPanelDefinition = {
+  id: 'hazard',
+  title: 'Hazard function',
+  yLabel: 'Rate',
+  series: [{ key: 'hazard', label: 'Hazard h(t)', color: '#0f766e' }],
+  yMax: () => 1.1,
+}
+
 const panelDefinitions: ChartPanelDefinition[] = [
   {
     id: 'survival-incidence',
@@ -133,13 +139,6 @@ const panelDefinitions: ChartPanelDefinition[] = [
     series: [{ key: 'cumulativeHazard', label: 'Cumulative hazard H(t)', color: '#dc2626' }],
     yMax: (points) => Math.min(Math.max(...points.map((p) => p.cumulativeHazard), 0.5) * 1.1, 8),
     referenceLines: [{ value: 1, label: 'H=1 (S≈37%)' }],
-  },
-  {
-    id: 'hazard',
-    title: 'Hazard function',
-    yLabel: 'Rate',
-    series: [{ key: 'hazard', label: 'Hazard h(t)', color: '#0f766e' }],
-    yMax: () => 1.1,
   },
 ]
 
@@ -182,7 +181,7 @@ const exercises: Exercise[] = [
 function App() {
   const [study, setStudy] = useState(defaultStudy)
 
-  const xStart = study.timeScale === 'Age'
+  const xStart = (study.timeScale === 'Age' || study.timeScale === 'Calendar year')
     ? (parseFirstNumber(study.timeOrigin) ?? 0)
     : 0
   const duration = Math.round(deriveDuration(study.timeOrigin, study.exitRule) ?? study.maxTime)
@@ -301,7 +300,8 @@ function App() {
               >
                 <option value="">— select —</option>
                 <option value="Age">Age</option>
-                <option value="Year">Year</option>
+                <option value="Calendar year">Calendar year</option>
+                <option value="Time since entry">Time since entry (duration)</option>
               </select>
             </LabeledField>
 
@@ -316,23 +316,7 @@ function App() {
           </div>
         </section>
 
-        {/* Four panels */}
-        <section className="panel-grid" aria-label="Event history figure">
-        {panelDefinitions.map((panel) => (
-            <FunctionPanel
-              key={panel.id}
-              panel={panel}
-              points={points}
-              study={study}
-              xStart={xStart}
-              ready={studyReady}
-              draggableY={panel.id === 'hazard' ? study.hazardRate : undefined}
-              onYDrag={panel.id === 'hazard' ? (v) => handleNumericChange('hazardRate', v) : undefined}
-              />
-          ))}
-        </section>
-
-        {/* Shared sliders */}
+        {/* Sliders */}
         <section className="sliders-card" aria-label="Chart controls">
           {sliderDefinitions.map((slider) => (
             <label className="slider-control" key={slider.key}>
@@ -349,6 +333,29 @@ function App() {
                 onChange={(e) => handleNumericChange(slider.key, Number(e.target.value))}
               />
             </label>
+          ))}
+        </section>
+
+        {/* Four panels */}
+        <section className="panel-grid" aria-label="Event history figure">
+          <FunctionPanel
+            panel={hazardPanel}
+            points={points}
+            study={study}
+            xStart={xStart}
+            ready={studyReady}
+            draggableY={study.hazardRate}
+            onYDrag={(v) => handleNumericChange('hazardRate', v)}
+          />
+          {panelDefinitions.map((panel) => (
+            <FunctionPanel
+              key={panel.id}
+              panel={panel}
+              points={points}
+              study={study}
+              xStart={xStart}
+              ready={studyReady}
+            />
           ))}
         </section>
 
