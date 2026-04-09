@@ -130,7 +130,7 @@ const panelDefinitions: ChartPanelDefinition[] = [
     title: 'Cumulative hazard function',
     yLabel: 'Cumulative hazard',
     series: [{ key: 'cumulativeHazard', label: 'Cumulative hazard H(t)', color: '#dc2626' }],
-    yMax: (points) => Math.min(Math.max(...points.map((p) => p.cumulativeHazard), 0.5) * 1.1, 8),
+    yMax: () => 5,
     referenceLines: [{ value: 1, label: 'H=1 (S≈37%)' }],
   },
 ]
@@ -148,20 +148,28 @@ const exercises: Exercise[] = [
     question: 'At what time have 30% of the population experienced the target event?',
   },
   {
-    id: 'ex-cumhaz-time',
-    question: 'What happens to the cumulative hazard function when you increase the follow-up window?',
-  },
-  {
     id: 'ex-cumhaz-lambda',
     question: 'What happens to the cumulative hazard function when you double the hazard rate λ?',
+  },
+  {
+    id: 'ex-cumhaz-time',
+    question: 'What happens to the cumulative hazard function when you increase the follow-up window?',
   },
   {
     id: 'ex-find-lambda',
     question: 'Given a study of length 10 years, what λ is needed so that exactly 50% of the population has experienced the event by 6 years?',
   },
   {
+    id: 'ex-survival-end',
+    question: 'Following the same example, what is the survival function at the end of follow up?',
+  },
+  {
     id: 'ex-density-area',
     question: 'What does the area under the probability density function represent, and what value should it approach over infinite follow-up?',
+  },
+  {
+    id: 'ex-density-vs-hazard',
+    question: 'Compare the density f(t) at t = 0 with the hazard rate h(t). Are they equal? Now look at f(t) at later times — why does it fall below h(t)?',
   },
 ]
 
@@ -197,7 +205,7 @@ function App() {
       key: 'maxTime',
       label: 'Follow-up window',
       min: 1,
-      max: Math.round(maxTimeSliderMax),
+      max: 30,
       step: 1,
       formatValue: (v) => String(Math.round(v)),
     },
