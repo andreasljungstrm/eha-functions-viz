@@ -163,10 +163,6 @@ const exercises: Exercise[] = [
     question: 'What happens to the cumulative hazard function when you double the hazard rate λ?',
   },
   {
-    id: 'ex-density-obs',
-    question: 'What happens with the probability density function if you increase the number of observations?',
-  },
-  {
     id: 'ex-find-lambda',
     question: 'Given a study of length 10 years, what λ is needed so that exactly 50% of the population has experienced the event by 6 years?',
   },
@@ -184,16 +180,11 @@ function App() {
   const xStart = (study.timeScale === 'Age' || study.timeScale === 'Calendar year')
     ? (parseFirstNumber(study.timeOrigin) ?? 0)
     : 0
-  const duration = Math.round(deriveDuration(study.timeOrigin, study.exitRule) ?? study.maxTime)
-  const maxTimeSliderMax = duration * 3
+  const maxTimeSliderMax = study.maxTime * 3
 
   const studyReady =
-    study.populationLabel.trim() !== '' &&
-    study.targetEvent.trim() !== '' &&
     study.timeOrigin.trim() !== '' &&
-    study.timeScale.trim() !== '' &&
-    study.exitRule.trim() !== '' &&
-    deriveDuration(study.timeOrigin, study.exitRule) !== null
+    study.timeScale.trim() !== ''
 
   const points = useMemo(
     () => computeConstantHazardSeries(study.hazardRate, study.maxTime),
@@ -220,14 +211,7 @@ function App() {
   ]
 
   function handleTextChange(field: StudyTextField, value: string) {
-    setStudy((current) => {
-      const updated: StudyScenario = { ...current, [field]: value }
-      const newOrigin = field === 'timeOrigin' ? value : current.timeOrigin
-      const newExit = field === 'exitRule' ? value : current.exitRule
-      const newDuration = deriveDuration(newOrigin, newExit)
-      if (newDuration !== null) updated.maxTime = Math.round(newDuration)
-      return updated
-    })
+    setStudy((current) => ({ ...current, [field]: value }))
   }
 
   function handleNumericChange(field: StudyNumericField, value: number) {
@@ -243,56 +227,6 @@ function App() {
         <section className="study-card" aria-labelledby="study-setup-heading">
           <h2 id="study-setup-heading">Study setup</h2>
           <div className="study-grid">
-            <LabeledField label="Target population">
-              <input
-                value={study.populationLabel}
-                placeholder="e.g., Individuals without drivers license"
-                onChange={(e) => handleTextChange('populationLabel', e.target.value)}
-              />
-            </LabeledField>
-
-            <LabeledField label="Population size">
-              <div className="stacked-control">
-                <input
-                  type="number"
-                  min={0}
-                  max={1000000}
-                  step={100}
-                  placeholder="e.g. 5000"
-                  value={study.populationSize || ''}
-                  onChange={(e) =>
-                    handleNumericChange('populationSize', Number(e.target.value) || 0)
-                  }
-                />
-                <input
-                  type="range"
-                  min={0}
-                  max={1000000}
-                  step={100}
-                  value={study.populationSize}
-                  onChange={(e) =>
-                    handleNumericChange('populationSize', Number(e.target.value))
-                  }
-                />
-              </div>
-            </LabeledField>
-
-            <LabeledField label="Target event">
-              <input
-                value={study.targetEvent}
-                placeholder="e.g., Getting a driver's license"
-                onChange={(e) => handleTextChange('targetEvent', e.target.value)}
-              />
-            </LabeledField>
-
-            <LabeledField label="Time origin">
-              <input
-                value={study.timeOrigin}
-                placeholder="e.g., Eligibility for getting a driver's license, age 18"
-                onChange={(e) => handleTextChange('timeOrigin', e.target.value)}
-              />
-            </LabeledField>
-
             <LabeledField label="Time-scale">
               <select
                 value={study.timeScale}
@@ -305,12 +239,11 @@ function App() {
               </select>
             </LabeledField>
 
-            <LabeledField label="Exit from the study">
-              <textarea
-                rows={2}
-                value={study.exitRule}
-                placeholder="e.g., Getting a driver's license, death, or turning 30"
-                onChange={(e) => handleTextChange('exitRule', e.target.value)}
+            <LabeledField label="Time origin">
+              <input
+                value={study.timeOrigin}
+                placeholder="e.g., Eligibility for getting a driver's license, age 18"
+                onChange={(e) => handleTextChange('timeOrigin', e.target.value)}
               />
             </LabeledField>
           </div>
