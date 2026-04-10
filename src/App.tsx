@@ -59,7 +59,7 @@ function parseFirstNumber(text: string): number | null {
 }
 
 function formatXTick(value: number) {
-  return Number.isInteger(value) ? String(value) : value.toFixed(1)
+  return String(Math.round(value))
 }
 
 function formatAxisValue(value: number, yUpper: number) {
@@ -130,7 +130,7 @@ const panelDefinitions: ChartPanelDefinition[] = [
     title: 'Cumulative hazard function',
     yLabel: 'Cumulative hazard',
     series: [{ key: 'cumulativeHazard', label: 'Cumulative hazard H(t)', color: '#dc2626' }],
-    yMax: () => 5,
+    yMax: () => 11,
     referenceLines: [{ value: 1, label: 'H=1 (S≈37%)' }],
   },
 ]
@@ -178,6 +178,7 @@ const exercises: Exercise[] = [
 function App() {
   const [study, setStudy] = useState(defaultStudy)
 
+  const isDurationScale = study.timeScale === 'Time since entry (duration)'
   const xStart = (study.timeScale === 'Age' || study.timeScale === 'Calendar year')
     ? (parseFirstNumber(study.timeOrigin) ?? 0)
     : 0
@@ -196,7 +197,7 @@ function App() {
       key: 'hazardRate',
       label: 'Hazard rate \u03BB',
       min: 0.02,
-      max: 1,
+      max: 0.6,
       step: 0.01,
       formatValue: (v) => v.toFixed(2),
     },
@@ -204,7 +205,7 @@ function App() {
       key: 'maxTime',
       label: 'Follow-up window',
       min: 1,
-      max: 30,
+      max: 20,
       step: 1,
       formatValue: (v) => String(Math.round(v)),
     },
@@ -212,10 +213,14 @@ function App() {
 
   function handleTextChange(field: StudyTextField, value: string) {
     setStudy((current) => {
-      const updated = { ...current, [field]: value }
-      // Hard code time origin to empty when using "Time since entry (duration)" scale
+      let updated = { ...current, [field]: value }
+      // When duration scale is selected, lock timeOrigin to '0'
       if (field === 'timeScale' && value === 'Time since entry (duration)') {
-        updated.timeOrigin = ''
+        updated = { ...updated, timeOrigin: '0' }
+      }
+      // Prevent user from changing timeOrigin when duration scale is active
+      if (field === 'timeOrigin' && current.timeScale === 'Time since entry (duration)') {
+        updated = { ...updated, timeOrigin: '0' }
       }
       return updated
     })
@@ -242,15 +247,16 @@ function App() {
                 <option value="">— select —</option>
                 <option value="Age">Age</option>
                 <option value="Calendar year">Calendar year</option>
-                <option value="Time since entry">Time since entry (duration)</option>
+                <option value="Time since entry (duration)">Time since entry (duration)</option>
               </select>
             </LabeledField>
 
             <LabeledField label="Time origin">
               <input
-                value={study.timeOrigin}
+                value={isDurationScale ? '0' : study.timeOrigin}
                 placeholder="e.g., Eligibility for getting a driver's license, age 18"
                 onChange={(e) => handleTextChange('timeOrigin', e.target.value)}
+                disabled={isDurationScale}
               />
             </LabeledField>
           </div>
@@ -400,7 +406,37 @@ function ChartCanvas({
   const xInverse = (px: number) => ((px - margin.left) / innerWidth) * maxTime
   const yInverse = (py: number) => ((margin.top + innerHeight - py) / innerHeight) * yUpper
 
-  const xTicks = createTicks(0, maxTime, 4)
+  // Generate x-axis ticks with consistent spacing
+  let xTicks: number[] = []
+  if (maxTime <= 5) {
+    // For small windows, show all integer ticks
+    const xTickMin = Math.ceil(0)
+    const xTickMax = Math.floor(maxTime)
+    for (let t = xTickMin; t <= xTickMax; t++) {
+      xTicks.push(t)
+    }
+  } else {
+    // For larger windows, find a nice step size that gives ~4-6 ticks
+    const candidateSteps = [1, 2, 3, 4, 5, 10, 15, 20, 25, 50, 100, 250, 500, 1000]
+    let bestStep = 1
+    let bestDiff = Math.abs(Math.ceil(maxTime / 1) - 5)
+    
+    for (const step of candidateSteps) {
+      const numTicks = Math.floor(maxTime / step) + 1
+      const diff = Math.abs(numTicks - 5)
+      
+      // Prefer step that gives us at least 3 ticks and is closest to 5
+      if (numTicks >= 3 && diff < bestDiff) {
+        bestDiff = diff
+        bestStep = step
+      }
+    }
+    
+    // Generate ticks with consistent step size
+    for (let t = 0; t <= maxTime; t += bestStep) {
+      xTicks.push(t)
+    }
+  }
   const yTicks = createTicks(0, yUpper, 4)
 
   const [cursorX, setCursorX] = useState<number | null>(null)
