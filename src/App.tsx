@@ -104,7 +104,7 @@ const hazardPanel: ChartPanelDefinition = {
   title: 'Hazard function',
   yLabel: 'Rate',
   series: [{ key: 'hazard', label: 'Hazard h(t)', color: '#0f766e' }],
-  yMax: () => 1.1,
+  yMax: () => 0.6,
 }
 
 const panelDefinitions: ChartPanelDefinition[] = [
@@ -211,7 +211,14 @@ function App() {
   ]
 
   function handleTextChange(field: StudyTextField, value: string) {
-    setStudy((current) => ({ ...current, [field]: value }))
+    setStudy((current) => {
+      const updated = { ...current, [field]: value }
+      // Hard code time origin to empty when using "Time since entry (duration)" scale
+      if (field === 'timeScale' && value === 'Time since entry (duration)') {
+        updated.timeOrigin = ''
+      }
+      return updated
+    })
   }
 
   function handleNumericChange(field: StudyNumericField, value: number) {
