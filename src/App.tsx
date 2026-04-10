@@ -161,7 +161,7 @@ const exercises: Exercise[] = [
   },
   {
     id: 'ex-survival-end',
-    question: 'Following the same example, what is the survival function at the end of follow up?',
+    question: 'Following the same example, what is the survival proportion at the end of follow up?',
   },
   {
     id: 'ex-density-area',
