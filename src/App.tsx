@@ -123,7 +123,8 @@ const panelDefinitions: ChartPanelDefinition[] = [
     title: 'Probability density function',
     yLabel: 'Density',
     series: [{ key: 'density', label: 'Density f(t)', color: '#9333ea' }],
-    yMax: (points) => Math.max(...points.map((p) => p.density), 0.05) * 1.1,
+    // yMax: (points) => Math.max(...points.map((p) => p.density), 0.05) * 1.1,
+    yMax: () => 0.6,
   },
   {
     id: 'cumulative-hazard',
@@ -131,7 +132,6 @@ const panelDefinitions: ChartPanelDefinition[] = [
     yLabel: 'Cumulative hazard',
     series: [{ key: 'cumulativeHazard', label: 'Cumulative hazard H(t)', color: '#dc2626' }],
     yMax: () => 11,
-    referenceLines: [{ value: 1, label: 'H=1 (S≈37%)' }],
   },
 ]
 
