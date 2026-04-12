@@ -697,7 +697,7 @@ function ChartCanvas({
                     className="chart-tooltip-bg"
                   />
                   <text x={bx + 6} y={by + 11} className="chart-tooltip-time">
-                    t = {formatXTick(xStart + cursorX!)}
+                    t = {(xStart + cursorX!).toFixed(2)}
                   </text>
                   {tooltipValues.map((tv, i) => (
                     <text
